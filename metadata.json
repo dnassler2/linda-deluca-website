@@ -1,0 +1,6 @@
+{
+  "name": "Linda DeLuca Art",
+  "description": "A minimalist gallery showcasing the whimsical, desert-pop, and neo-expressionist paintings of Linda DeLuca.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

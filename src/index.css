@@ -1,0 +1,44 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Lora:ital,wght@0,300;0,400;0,500;1,300;1,400;1,500&family=JetBrains+Mono:wght@400;500&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-serif: "Lora", Georgia, ui-serif, serif;
+  --font-mono: "JetBrains Mono", ui-monospace, monospace;
+  
+  --color-natural-bg: #F5F2ED;
+  --color-natural-text: #2D2D2A;
+  --color-natural-card: #EAE7E2;
+  --color-natural-border: rgba(45, 45, 42, 0.1);
+  --color-natural-border-hover: rgba(45, 45, 42, 0.25);
+  
+  --color-desert-warm: #F5F2ED;
+}
+
+body {
+  background-color: #F5F2ED; /* Luxurious warm natural tone */
+  color: #2D2D2A; /* Deep warm stone charcoal */
+  font-family: var(--font-serif);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Custom scrollbar matching soft earth textures */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: #F5F2ED;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #C4C0B9;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #9B978E;
+}
+

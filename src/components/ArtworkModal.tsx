@@ -1,0 +1,325 @@
+import React, { useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'motion/react';
+import { Artwork } from '../types';
+import { X, Send, CheckCircle2, ChevronLeft, ChevronRight, Share2, Clipboard } from 'lucide-react';
+import { ARTWORKS } from '../data/artworks';
+import ArtworkImage from './ArtworkImage';
+
+interface ArtworkModalProps {
+  artwork: Artwork | null;
+  onClose: () => void;
+  onNext?: () => void;
+  onPrev?: () => void;
+}
+
+export default function ArtworkModal({ artwork, onClose, onNext, onPrev }: ArtworkModalProps) {
+  const [formData, setFormData] = useState({ name: '', email: '', message: '' });
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isSubmitted, setIsSubmitted] = useState(false);
+  const [copiedLink, setCopiedLink] = useState(false);
+
+  // Set default message template depending on artwork stock
+  useEffect(() => {
+    if (artwork) {
+      const template = artwork.price === 'Sold'
+        ? `Hi Linda, I saw your piece '${artwork.title}' which of course is sold, but I absolutely love its style. I would love to talk about commissioning a similar painting in this desert-pop style! Do you have availability for commissions later this season?`
+        : `Hi Linda, I am highly interested in purchasing your painting '${artwork.title}' (${artwork.price}, ${artwork.dimensions}). Could you please share more information regarding packaging, shipping policies, and insurance options? Thank you!`;
+      
+      setFormData(prev => ({ ...prev, message: template }));
+      setIsSubmitted(false);
+    }
+  }, [artwork]);
+
+  // Handle escape key to close modal
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+      if (e.key === 'ArrowRight' && onNext) onNext();
+      if (e.key === 'ArrowLeft' && onPrev) onPrev();
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [onClose, onNext, onPrev]);
+
+  if (!artwork) return null;
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!formData.name || !formData.email) return;
+
+    setIsSubmitting(true);
+    
+    // Simulate API call
+    setTimeout(() => {
+      setIsSubmitting(false);
+      setIsSubmitted(true);
+      // Reset form
+      setFormData({ name: '', email: '', message: '' });
+    }, 1200);
+  };
+
+  const handleShare = () => {
+    navigator.clipboard.writeText(`${window.location.origin}/?artwork=${artwork.id}`);
+    setCopiedLink(true);
+    setTimeout(() => setCopiedLink(false), 2000);
+  };
+
+  return (
+    <AnimatePresence>
+      <div className="fixed inset-0 z-50 overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+        {/* Backdrop overlay */}
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.3 }}
+          className="fixed inset-0 bg-[#2D2D2A]/90 backdrop-blur-[4px] transition-opacity"
+          onClick={onClose}
+        />
+
+        <div className="flex items-center justify-center min-h-screen p-4 sm:p-6 lg:p-10 relative z-10 font-sans">
+          {/* Modal Close Button (Floating Top Corner) */}
+          <button
+            id="modal-close-btn-top"
+            onClick={onClose}
+            className="absolute top-4 right-4 sm:top-6 sm:right-6 text-[#F5F2ED]/70 hover:text-white bg-[#2D2D2A]/50 p-2.5 rounded-md border border-[#2D2D2A]/35 hover:bg-[#2D2D2A] transition-all z-[60]"
+            aria-label="Close panel"
+          >
+            <X className="w-5 h-5" />
+          </button>
+
+          {/* Quick Nav Controls on Large Screens */}
+          {onPrev && (
+            <button
+              id="modal-prev-btn"
+              onClick={onPrev}
+              className="absolute left-4 lg:left-8 top-1/2 -translate-y-1/2 hidden md:flex items-center justify-center text-[#F5F2ED]/70 hover:text-white bg-[#2D2D2A]/40 p-3.5 rounded-md hover:bg-[#2D2D2A] border border-[#2D2D2A]/35 transition-all z-20 group"
+              aria-label="Previous image"
+            >
+              <ChevronLeft className="w-5 h-5 group-hover:-translate-x-0.5 transition-transform" />
+            </button>
+          )}
+
+          {onNext && (
+            <button
+              id="modal-next-btn"
+              onClick={onNext}
+              className="absolute right-4 lg:right-8 top-1/2 -translate-y-1/2 hidden md:flex items-center justify-center text-[#F5F2ED]/70 hover:text-white bg-[#2D2D2A]/40 p-3.5 rounded-md hover:bg-[#2D2D2A] border border-[#2D2D2A]/35 transition-all z-20 group"
+              aria-label="Next image"
+            >
+              <ChevronRight className="w-5 h-5 group-hover:translate-x-0.5 transition-transform" />
+            </button>
+          )}
+
+          {/* Core Panel Card */}
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95, y: 15 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.95, y: 15 }}
+            transition={{ type: 'spring', damping: 25, stiffness: 220 }}
+            className="bg-[#F5F2ED] rounded-2xl overflow-hidden shadow-2xl border border-[#2D2D2A]/10 w-full max-w-5xl mx-auto flex flex-col lg:flex-row max-h-[90vh] lg:max-h-[85vh]"
+          >
+            {/* Left Portion: GRAND IMAGE VIEWER */}
+            <div className="w-full lg:w-3/5 bg-[#252321] flex flex-col justify-between relative p-4 sm:p-6 lg:p-8 min-h-[280px] sm:min-h-[380px] lg:min-h-auto overflow-hidden flex-shrink-0 lg:flex-shrink">
+              {/* Top ambient shadows */}
+              <div className="absolute inset-x-0 top-0 h-20 bg-gradient-to-b from-stone-950/40 to-transparent pointer-events-none" />
+
+              {/* Artwork tag indicator */}
+              <div className="flex items-center justify-between z-10">
+                <span className="font-sans text-[10px] tracking-widest text-[#F5F2ED]/60 uppercase">
+                  Linda DeLuca • Collection
+                </span>
+                <button
+                  id="artwork-share-btn"
+                  onClick={handleShare}
+                  className="flex items-center gap-1.5 px-3 py-1.5 text-[10px] font-sans font-medium tracking-widest text-[#F5F2ED]/80 hover:text-white bg-[#2D2D2A]/70 rounded border border-[#2D2D2A]/25 hover:bg-[#2D2D2A] transition-all"
+                >
+                  {copiedLink ? (
+                    <>
+                      <Clipboard className="w-3 h-3 text-emerald-400" />
+                      <span>Copied URL</span>
+                    </>
+                  ) : (
+                    <>
+                      <Share2 className="w-3 h-3" />
+                      <span>Share</span>
+                    </>
+                  )}
+                </button>
+              </div>
+
+              {/* Centered High Resolution Element */}
+              <div className="flex-grow flex items-center justify-center my-4 relative max-h-[220px] sm:max-h-[340px] lg:max-h-[500px] w-full">
+                {/* Visual shadow glow behind actual painting context */}
+                <div className="absolute inset-0 bg-stone-900/40 blur-2xl rounded-full scale-75" />
+                
+                <ArtworkImage artwork={artwork} isModal={true} className="z-10" />
+              </div>
+
+              {/* Bottom gallery card tag mockups */}
+              <div className="flex items-center justify-between text-[#F5F2ED]/60 text-[10px] font-mono border-t border-[#F5F2ED]/10 pt-4 z-10">
+                <span>Medium: {artwork.medium}</span>
+                <span>Dim: {artwork.dimensions}</span>
+              </div>
+            </div>
+
+            {/* Right Portion: METADATA, STORY, AND INQUIRY FORM */}
+            <div className="w-full lg:w-2/5 flex flex-col lg:h-full overflow-y-auto border-t lg:border-t-0 lg:border-l border-[#2D2D2A]/15 min-h-0 flex-1 lg:flex-none">
+              <div className="p-6 sm:p-8 flex flex-col flex-grow justify-between gap-6">
+                {/* Visual Details Card */}
+                <div>
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="font-sans text-[10px] font-semibold text-[#2D2D2A]/50 bg-[#2D2D2A]/5 px-2.5 py-0.5 rounded-sm uppercase tracking-widest">
+                      {artwork.category} Series
+                    </span>
+                    <span className="font-mono text-[11px] text-[#2D2D2A]/50">
+                      {artwork.year}
+                    </span>
+                  </div>
+
+                  <h2 id="modal-artwork-title" className="font-serif font-light text-2xl text-[#2D2D2A] tracking-tight mt-3">
+                    {artwork.title}
+                  </h2>
+
+                  {/* Standard Salon Specification label */}
+                  <div className="mt-4 flex gap-3 text-xs border-y border-[#2D2D2A]/10 py-3">
+                    <div className="flex flex-col">
+                      <span className="text-[#2D2D2A]/40 font-sans text-[10px] font-semibold tracking-wider uppercase">Medium</span>
+                      <span id="label-medium" className="text-[#2D2D2A] font-medium mt-0.5">{artwork.medium}</span>
+                    </div>
+                    <div className="flex flex-col border-l border-[#2D2D2A]/10 pl-3">
+                      <span className="text-[#2D2D2A]/40 font-sans text-[10px] font-semibold tracking-wider uppercase">Dimensions</span>
+                      <span id="label-dims" className="text-[#2D2D2A] font-medium mt-0.5">{artwork.dimensions}</span>
+                    </div>
+                  </div>
+
+                  {/* Description Box */}
+                  <div className="mt-4">
+                    <span className="text-[#2D2D2A]/40 font-sans text-[10px] font-semibold tracking-widest uppercase block">Artwork Backstory</span>
+                    <p id="label-description" className="text-[#2D2D2A]/80 text-xs sm:text-sm leading-relaxed mt-1.5 font-sans font-light">
+                      {artwork.description}
+                    </p>
+                  </div>
+                </div>
+
+                {/* The Interactive Form for Contact / Purchase */}
+                <div className="border-t border-[#2D2D2A]/15 pt-6 bg-[#EAE7E2]/50 p-4 rounded-xl border border-[#2D2D2A]/10">
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="flex flex-col">
+                      <span className="font-sans text-[10px] uppercase tracking-widest font-semibold text-[#2D2D2A]/40">Acquisition Status</span>
+                      <span id="status-price" className={`text-sm font-semibold tracking-tight ${artwork.price === 'Sold' ? 'text-[#2D2D2A]/50' : 'text-[#2D2D2A]'}`}>
+                        {artwork.price === 'Sold' ? 'Private Collection (Sold)' : `Available • ${artwork.price}`}
+                      </span>
+                    </div>
+                    {artwork.price === 'Sold' && (
+                      <span className="px-2.5 py-1 bg-[#2D2D2A]/5 text-[#2D2D2A]/80 text-[10px] font-sans font-medium rounded-sm border border-[#2D2D2A]/10">
+                        Request Commission
+                      </span>
+                    )}
+                  </div>
+
+                  <AnimatePresence mode="wait">
+                    {!isSubmitted ? (
+                      <motion.form
+                        key="contact-form"
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        onSubmit={handleSubmit}
+                        className="space-y-3.5"
+                      >
+                        <div id="form-group-name">
+                          <label className="block text-[10px] font-sans font-semibold tracking-widest text-[#2D2D2A]/50 uppercase mb-1">
+                            Your Name *
+                          </label>
+                          <input
+                            id="field-client-name"
+                            type="text"
+                            required
+                            value={formData.name}
+                            onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
+                            placeholder="John Doe"
+                            className="w-full bg-white/60 border border-[#2D2D2A]/10 rounded-lg px-3 py-2.5 text-xs outline-none focus:border-[#2D2D2A]/30 focus:bg-white transition-all font-sans"
+                          />
+                        </div>
+
+                        <div id="form-group-email">
+                          <label className="block text-[10px] font-sans font-semibold tracking-widest text-[#2D2D2A]/50 uppercase mb-1">
+                            Email Address *
+                          </label>
+                          <input
+                            id="field-client-email"
+                            type="email"
+                            required
+                            value={formData.email}
+                            onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
+                            placeholder="collector@example.com"
+                            className="w-full bg-white/60 border border-[#2D2D2A]/10 rounded-lg px-3 py-2.5 text-xs outline-none focus:border-[#2D2D2A]/30 focus:bg-white transition-all font-sans"
+                          />
+                        </div>
+
+                        <div id="form-group-message">
+                          <label className="block text-[10px] font-sans font-semibold tracking-widest text-[#2D2D2A]/50 uppercase mb-1">
+                            Message to the Artist
+                          </label>
+                          <textarea
+                            id="field-client-message"
+                            rows={3}
+                            value={formData.message}
+                            onChange={(e) => setFormData(prev => ({ ...prev, message: e.target.value }))}
+                            className="w-full bg-white/60 border border-[#2D2D2A]/10 rounded-lg p-3 text-xs outline-none focus:border-[#2D2D2A]/30 focus:bg-white transition-all resize-none leading-relaxed font-sans"
+                          />
+                        </div>
+
+                        <button
+                          id="submit-inquiry-btn"
+                          type="submit"
+                          disabled={isSubmitting}
+                          className="w-full flex items-center justify-center gap-2 bg-[#2D2D2A] text-white hover:opacity-90 disabled:bg-[#2D2D2A]/40 px-4 py-3 text-xs font-semibold tracking-widest uppercase rounded-lg transition-all cursor-pointer border-none"
+                        >
+                          {isSubmitting ? (
+                            <>
+                              <div className="w-3.5 h-3.5 border-2 border-stone-100 border-t-transparent rounded-full animate-spin" />
+                              <span>Sending Inquiry...</span>
+                            </>
+                          ) : (
+                            <>
+                              <Send className="w-3.5 h-3.5" />
+                              <span>{artwork.price === 'Sold' ? 'Request Commission Info' : 'Send Purchase Inquiry'}</span>
+                            </>
+                          )}
+                        </button>
+                      </motion.form>
+                    ) : (
+                      <motion.div
+                        key="success-card"
+                        initial={{ opacity: 0, scale: 0.95 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        exit={{ opacity: 0 }}
+                        className="py-10 text-center flex flex-col items-center justify-center bg-[#2D2D2A]/5 border border-[#2D2D2A]/10 rounded-xl"
+                      >
+                        <CheckCircle2 className="w-8 h-8 text-[#2D2D2A]/80 mb-2.5" />
+                        <h4 className="font-serif font-normal text-[#2D2D2A] text-base">Inquiry Sent Successfully</h4>
+                        <p className="text-[11px] text-[#2D2D2A]/70 max-w-[240px] leading-relaxed mt-1 font-sans">
+                          Your message has been queued to Linda's inbox. She will respond directly to <strong>{formData.email}</strong> within 1-2 business days.
+                        </p>
+                        <button
+                          id="reset-form-btn-modal"
+                          onClick={() => setIsSubmitted(false)}
+                          className="mt-4 text-[10px] font-sans uppercase tracking-widest font-semibold text-[#2D2D2A]/60 hover:text-[#2D2D2A] underline"
+                        >
+                          Send another message
+                        </button>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
+              </div>
+            </div>
+          </motion.div>
+        </div>
+      </div>
+    </AnimatePresence>
+  );
+
+}
