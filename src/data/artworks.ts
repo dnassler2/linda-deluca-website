@@ -716,7 +716,7 @@ export const ARTWORKS: Artwork[] = [
     dimensions: "Dimensions on request",
     price: "Price on request",
     category: "paris",
-    imageUrl: "/Paris/EE186201-2985-439C-7724-D8A98B63D0A2.png",
+    imageUrl: "/Paris/EE186201-2985-439C-9724-D8A98B63D0A2.png",
     description: "An atmospheric and graphic exploration of the iconic Paris Métro entrance, combining hand-drawn lines with deep urban texture."
   },
   {
