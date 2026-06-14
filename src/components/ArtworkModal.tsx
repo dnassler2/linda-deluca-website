@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Artwork } from '../types';
-import { X, Send, CheckCircle2, ChevronLeft, ChevronRight, Share2, Clipboard } from 'lucide-react';
+import { X, Send, CheckCircle2, ChevronLeft, ChevronRight, Share2, Clipboard, AlertCircle } from 'lucide-react';
 import { ARTWORKS } from '../data/artworks';
 import ArtworkImage from './ArtworkImage';
+import { sendEmail } from '../utils/emailService';
 
 interface ArtworkModalProps {
   artwork: Artwork | null;
@@ -17,6 +18,9 @@ export default function ArtworkModal({ artwork, onClose, onNext, onPrev }: Artwo
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [copiedLink, setCopiedLink] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
+  const [submittedEmail, setSubmittedEmail] = useState('');
+
 
   // Set default message template depending on artwork stock
   useEffect(() => {
@@ -43,19 +47,37 @@ export default function ArtworkModal({ artwork, onClose, onNext, onPrev }: Artwo
 
   if (!artwork) return null;
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.name || !formData.email) return;
 
     setIsSubmitting(true);
-    
-    // Simulate API call
-    setTimeout(() => {
-      setIsSubmitting(false);
+    setSubmitError(null);
+
+    try {
+      await sendEmail({
+        from_name: formData.name,
+        from_email: formData.email,
+        reply_to: formData.email,
+        name: formData.name,
+        email: formData.email,
+        artwork_title: artwork.title,
+        artwork_price: artwork.price,
+        artwork_medium: artwork.medium,
+        artwork_dimensions: artwork.dimensions,
+        message: `Inquirer Name: ${formData.name}\nInquirer Email: ${formData.email}\nArtwork: "${artwork.title}" (${artwork.medium}, ${artwork.dimensions})\nPrice: ${artwork.price}\n\nMessage:\n${formData.message}`,
+        to_name: "Linda DeLuca",
+        subject: `Artwork Inquiry: ${artwork.title}`,
+      });
+      setSubmittedEmail(formData.email);
       setIsSubmitted(true);
-      // Reset form
       setFormData({ name: '', email: '', message: '' });
-    }, 1200);
+    } catch (err: any) {
+      console.error('Failed to send mail:', err);
+      setSubmitError('Failed to send inquiry. Please check your network connection or try again.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleShare = () => {
@@ -266,6 +288,13 @@ export default function ArtworkModal({ artwork, onClose, onNext, onPrev }: Artwo
                           />
                         </div>
 
+                        {submitError && (
+                          <div className="flex items-start gap-2 text-rose-700 bg-rose-50 border border-rose-200/50 rounded-lg p-3 text-xs leading-relaxed">
+                            <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
+                            <span>{submitError}</span>
+                          </div>
+                        )}
+
                         <button
                           id="submit-inquiry-btn"
                           type="submit"
@@ -296,7 +325,7 @@ export default function ArtworkModal({ artwork, onClose, onNext, onPrev }: Artwo
                         <CheckCircle2 className="w-8 h-8 text-[#2D2D2A]/80 mb-2.5" />
                         <h4 className="font-serif font-normal text-[#2D2D2A] text-base">Inquiry Sent Successfully</h4>
                         <p className="text-[11px] text-[#2D2D2A]/70 max-w-[240px] leading-relaxed mt-1 font-sans">
-                          Your message has been queued to Linda's inbox. She will respond directly to <strong>{formData.email}</strong> within 1-2 business days.
+                          Your message has been queued to Linda's inbox. She will respond directly to <strong>{submittedEmail}</strong> within 1-2 business days.
                         </p>
                         <button
                           id="reset-form-btn-modal"

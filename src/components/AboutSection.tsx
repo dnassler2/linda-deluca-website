@@ -1,23 +1,44 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { ARTIST_PROFILE, EXHIBITIONS } from '../data/artworks';
-import { Mail, MapPin, Instagram, Calendar, Users, Crown, Sparkles, Send, CheckCircle2 } from 'lucide-react';
+import { Mail, MapPin, Instagram, Calendar, Users, Crown, Sparkles, Send, CheckCircle2, AlertCircle } from 'lucide-react';
+import { sendEmail } from '../utils/emailService';
 
 export default function AboutSection() {
   const [formData, setFormData] = useState({ name: '', email: '', topic: 'Session', message: '' });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
+  const [submittedEmail, setSubmittedEmail] = useState('');
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.name || !formData.email) return;
 
     setIsSubmitting(true);
-    setTimeout(() => {
-      setIsSubmitting(false);
+    setSubmitError(null);
+
+    try {
+      await sendEmail({
+        from_name: formData.name,
+        from_email: formData.email,
+        reply_to: formData.email,
+        name: formData.name,
+        email: formData.email,
+        topic: formData.topic,
+        message: `Inquirer Name: ${formData.name}\nInquirer Email: ${formData.email}\nTopic of Interest: ${formData.topic}\n\nMessage:\n${formData.message}`,
+        to_name: 'Linda DeLuca',
+        subject: `Studio Inquiry: ${formData.topic}`,
+      });
+      setSubmittedEmail(formData.email);
       setIsSubmitted(true);
       setFormData({ name: '', email: '', topic: 'Session', message: '' });
-    }, 1200);
+    } catch (err: any) {
+      console.error('Failed to send mail:', err);
+      setSubmitError('Failed to send message. Please verify your connection or try again later.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -220,6 +241,13 @@ export default function AboutSection() {
                   />
                 </div>
 
+                {submitError && (
+                  <div className="flex items-start gap-2 text-rose-700 bg-rose-50 border border-rose-200/50 rounded-lg p-3 text-xs leading-relaxed">
+                    <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
+                    <span>{submitError}</span>
+                  </div>
+                )}
+
                 <button
                   id="studio-submit-btn"
                   type="submit"
@@ -250,7 +278,7 @@ export default function AboutSection() {
                 <CheckCircle2 className="w-8 h-8 text-[#2D2D2A]/80 mb-2.5" />
                 <h4 className="font-serif font-normal text-[#2D2D2A] text-base">Message Sent Successfully</h4>
                 <p className="text-[11px] text-[#2D2D2A]/70 max-w-[280px] leading-relaxed mt-1 font-sans">
-                  Thank you for your message! Linda appreciates your outreach tremendously and will get back to you at <strong>{formData.email}</strong> as soon as possible.
+                  Thank you for your message! Linda appreciates your outreach tremendously and will get back to you at <strong>{submittedEmail}</strong> as soon as possible.
                 </p>
                 <button
                   id="reset-studio-form-btn"
