@@ -117,10 +117,10 @@ export default function ArtworkModal({ artwork, onClose, onNext, onPrev }: Artwo
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 15 }}
             transition={{ type: 'spring', damping: 25, stiffness: 220 }}
-            className="bg-[#F5F2ED] rounded-2xl overflow-hidden shadow-2xl border border-[#2D2D2A]/10 w-full max-w-5xl mx-auto flex flex-col lg:flex-row max-h-[90vh] lg:max-h-[85vh]"
+            className="bg-[#F5F2ED] rounded-2xl overflow-hidden shadow-2xl border border-[#2D2D2A]/10 w-full max-w-5xl mx-auto flex flex-col lg:flex-row h-[90vh] lg:h-[85vh] max-h-[800px] lg:max-h-[750px]"
           >
             {/* Left Portion: GRAND IMAGE VIEWER */}
-            <div className="w-full lg:w-3/5 bg-[#252321] flex flex-col justify-between relative p-4 sm:p-6 lg:p-8 min-h-[280px] sm:min-h-[380px] lg:min-h-auto overflow-hidden flex-shrink-0 lg:flex-shrink">
+            <div className="w-full lg:w-3/5 h-[40vh] lg:h-full bg-[#252321] flex flex-col justify-between relative p-4 sm:p-6 lg:p-8 overflow-hidden flex-shrink-0">
               {/* Top ambient shadows */}
               <div className="absolute inset-x-0 top-0 h-20 bg-gradient-to-b from-stone-950/40 to-transparent pointer-events-none" />
 
@@ -149,22 +149,17 @@ export default function ArtworkModal({ artwork, onClose, onNext, onPrev }: Artwo
               </div>
 
               {/* Centered High Resolution Element */}
-              <div className="flex-grow flex items-center justify-center my-4 relative h-[220px] sm:h-[340px] lg:h-[480px] max-h-[25vh] sm:max-h-[40vh] lg:max-h-[55vh] w-full min-h-0">
+              <div className="flex-grow flex items-center justify-center my-2 sm:my-4 relative w-full min-h-0 overflow-hidden">
                 {/* Visual shadow glow behind actual painting context */}
                 <div className="absolute inset-0 bg-stone-900/40 blur-2xl rounded-full scale-75" />
                 
                 <ArtworkImage artwork={artwork} isModal={true} className="z-10" />
               </div>
 
-              {/* Bottom gallery card tag mockups */}
-              <div className="flex items-center justify-between text-[#F5F2ED]/60 text-[10px] font-mono border-t border-[#F5F2ED]/10 pt-4 z-10">
-                <span>Medium: {artwork.medium}</span>
-                <span>Dim: {artwork.dimensions}</span>
-              </div>
             </div>
 
             {/* Right Portion: METADATA, STORY, AND INQUIRY FORM */}
-            <div className="w-full lg:w-2/5 flex flex-col lg:h-full overflow-y-auto border-t lg:border-t-0 lg:border-l border-[#2D2D2A]/15 min-h-0 flex-1 lg:flex-none">
+            <div className="w-full lg:w-2/5 flex flex-col h-[50vh] lg:h-full overflow-y-auto border-t lg:border-t-0 lg:border-l border-[#2D2D2A]/15 min-h-0 flex-1">
               <div className="p-6 sm:p-8 flex flex-col flex-grow justify-between gap-6">
                 {/* Visual Details Card */}
                 <div>
