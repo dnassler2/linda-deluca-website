@@ -190,7 +190,7 @@ export default function ArtworkImage({ artwork, className = '', isModal = false 
   const absolutePublicPath = `/public${artwork.imageUrl}`;
 
   return (
-    <div className={`relative w-full h-full flex items-center justify-center overflow-hidden ${className}`}>
+    <div className={`relative w-full h-full flex items-center justify-center ${isModal ? '' : 'overflow-hidden'} ${className}`}>
       {!hasError ? (
         <img
           src={artwork.imageUrl}

@@ -149,7 +149,7 @@ export default function ArtworkModal({ artwork, onClose, onNext, onPrev }: Artwo
               </div>
 
               {/* Centered High Resolution Element */}
-              <div className="flex-grow flex items-center justify-center my-4 relative max-h-[220px] sm:max-h-[340px] lg:max-h-[500px] w-full">
+              <div className="flex-grow flex items-center justify-center my-4 relative h-[220px] sm:h-[340px] lg:h-[480px] max-h-[25vh] sm:max-h-[40vh] lg:max-h-[55vh] w-full min-h-0">
                 {/* Visual shadow glow behind actual painting context */}
                 <div className="absolute inset-0 bg-stone-900/40 blur-2xl rounded-full scale-75" />
                 
