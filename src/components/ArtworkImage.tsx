@@ -195,6 +195,7 @@ export default function ArtworkImage({ artwork, className = '', isModal = false 
         <img
           src={artwork.imageUrl}
           alt={artwork.title}
+          loading="lazy"
           referrerPolicy="no-referrer"
           onError={() => setHasError(true)}
           className={

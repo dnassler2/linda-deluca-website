@@ -52,6 +52,7 @@ export default function AboutSection() {
             <img
               src="/linda-deluca-profile-image.jpeg"
               alt="Linda DeLuca Portrait"
+              loading="lazy"
               referrerPolicy="no-referrer"
               className="w-full h-full object-cover rounded-xl grayscale hover:grayscale-0 transition-all duration-700"
             />
