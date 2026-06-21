@@ -50,7 +50,7 @@ export default function AboutSection() {
           <div className="relative w-full max-w-[340px] aspect-[4/5] rounded-2xl bg-[#EAE7E2] border border-[#2D2D2A]/10 shadow-xl overflow-hidden p-3 transform -rotate-1 hover:rotate-0 transition-transform duration-500">
             {/* The real image we load is a gorgeous artist-at-work stock photography or portrait */}
             <img
-              src="/linda-deluca-profile-image.jpeg"
+              src="/linda-deluca-profile-image.webp"
               alt="Linda DeLuca Portrait"
               loading="lazy"
               referrerPolicy="no-referrer"

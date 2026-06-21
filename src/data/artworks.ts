@@ -36,7 +36,7 @@ export const EXHIBITIONS: Exhibition[] = [
   }
 ];
 
-export const ARTWORKS: Artwork[] = [
+const RAW_ARTWORKS: Artwork[] = [
   {
     id: "linocut-1",
     title: "Faces",
@@ -1380,3 +1380,8 @@ export const ARTWORKS: Artwork[] = [
     description: "A tender and elegant graphic portrait of an Asian woman, beautifully harmonized with subtle block colors and hand-drawn patterns."
   }
 ];
+
+export const ARTWORKS: Artwork[] = RAW_ARTWORKS.map(artwork => ({
+  ...artwork,
+  imageUrl: artwork.imageUrl.replace(/\.(png|jpe?g)$/i, '.webp')
+}));
