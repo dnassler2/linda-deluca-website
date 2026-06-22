@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Artwork } from '../types';
-import { X, Send, CheckCircle2, ChevronLeft, ChevronRight, Share2, Clipboard, AlertCircle } from 'lucide-react';
+import { X, Send, CheckCircle2, ChevronLeft, ChevronRight, Share2, Clipboard, AlertCircle, Eye, Search, ZoomIn } from 'lucide-react';
 import { ARTWORKS } from '../data/artworks';
 import ArtworkImage from './ArtworkImage';
 import { sendEmail } from '../utils/emailService';
@@ -20,6 +20,11 @@ export default function ArtworkModal({ artwork, onClose, onNext, onPrev }: Artwo
   const [copiedLink, setCopiedLink] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [submittedEmail, setSubmittedEmail] = useState('');
+
+  // States for full-screen brushwork zoom view
+  const [isZoomed, setIsZoomed] = useState(false);
+  const [zoomScale, setZoomScale] = useState(2.2);
+  const [zoomOrigin, setZoomOrigin] = useState({ x: 50, y: 50 });
 
 
   // Set default message template depending on artwork stock
@@ -40,16 +45,22 @@ export default function ArtworkModal({ artwork, onClose, onNext, onPrev }: Artwo
     document.body.style.overflow = 'hidden';
 
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose();
-      if (e.key === 'ArrowRight' && onNext) onNext();
-      if (e.key === 'ArrowLeft' && onPrev) onPrev();
+      if (e.key === 'Escape') {
+        if (isZoomed) {
+          setIsZoomed(false);
+        } else {
+          onClose();
+        }
+      }
+      if (e.key === 'ArrowRight' && onNext && !isZoomed) onNext();
+      if (e.key === 'ArrowLeft' && onPrev && !isZoomed) onPrev();
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => {
       window.removeEventListener('keydown', handleKeyDown);
       document.body.style.overflow = originalStyle;
     };
-  }, [onClose, onNext, onPrev]);
+  }, [onClose, onNext, onPrev, isZoomed]);
 
   if (!artwork) return null;
 
@@ -92,6 +103,23 @@ export default function ArtworkModal({ artwork, onClose, onNext, onPrev }: Artwo
     setTimeout(() => setCopiedLink(false), 2000);
   };
 
+  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    const { left, top, width, height } = e.currentTarget.getBoundingClientRect();
+    const x = ((e.clientX - left) / width) * 100;
+    const y = ((e.clientY - top) / height) * 100;
+    setZoomOrigin({ x: Math.min(100, Math.max(0, x)), y: Math.min(100, Math.max(0, y)) });
+  };
+
+  const handleTouchMove = (e: React.TouchEvent<HTMLDivElement>) => {
+    if (e.touches && e.touches[0]) {
+      const touch = e.touches[0];
+      const { left, top, width, height } = e.currentTarget.getBoundingClientRect();
+      const x = ((touch.clientX - left) / width) * 100;
+      const y = ((touch.clientY - top) / height) * 100;
+      setZoomOrigin({ x: Math.min(100, Math.max(0, x)), y: Math.min(100, Math.max(0, y)) });
+    }
+  };
+
   return (
     <div className="fixed inset-0 z-50 overflow-hidden" aria-labelledby="modal-title" role="dialog" aria-modal="true">
       {/* Backdrop overlay */}
@@ -104,17 +132,17 @@ export default function ArtworkModal({ artwork, onClose, onNext, onPrev }: Artwo
         onClick={onClose}
       />
 
-        <div className="flex items-center justify-center h-full w-full p-3 sm:p-6 lg:p-10 relative z-10 font-sans">
-          {/* Modal Close Button (Floating Top Corner) */}
-          <button
-            id="modal-close-btn-top"
-            onClick={onClose}
-            className="absolute top-4 right-4 sm:top-6 sm:right-6 text-[#F5F2ED]/70 hover:text-white bg-[#2D2D2A]/50 p-2.5 rounded-md border border-[#2D2D2A]/35 hover:bg-[#2D2D2A] transition-all z-[60]"
-            aria-label="Close panel"
-          >
-            <X className="w-5 h-5" />
-          </button>
+      {/* Persistent Floating Close Button (Viewport Top-Right, Outside the card) */}
+      <button
+        id="modal-close-btn-top"
+        onClick={onClose}
+        className="fixed top-3 right-3 sm:top-5 sm:right-5 md:top-6 md:right-6 text-[#F5F2ED]/85 hover:text-white bg-[#2D2D2A]/60 p-2 sm:p-2.5 rounded-full border border-[#2F2F2C]/30 hover:bg-[#2D2D2A]/95 shadow-lg transition-all z-[60]"
+        aria-label="Close panel"
+      >
+        <X className="w-5 h-5 sm:w-6 sm:h-6" />
+      </button>
 
+      <div className="flex items-center justify-center h-full w-full p-3 sm:p-6 lg:p-10 relative z-10 font-sans">
           {/* Quick Nav Controls on Large Screens */}
           {onPrev && (
             <button
@@ -144,7 +172,7 @@ export default function ArtworkModal({ artwork, onClose, onNext, onPrev }: Artwo
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 15 }}
             transition={{ type: 'spring', damping: 25, stiffness: 220 }}
-            className="bg-[#F5F2ED] rounded-2xl overflow-hidden shadow-2xl border border-[#2D2D2A]/10 w-full max-w-5xl mx-auto flex flex-col lg:flex-row h-full max-h-[85vh] max-h-[85dvh] lg:h-[85vh] lg:h-[85dvh] lg:max-h-[750px]"
+            className="bg-[#F5F2ED] rounded-2xl overflow-hidden shadow-2xl border border-[#2D2D2A]/10 w-full max-w-5xl mx-auto flex flex-col lg:flex-row h-full max-h-[92vh] max-h-[92dvh] sm:max-h-[85vh] sm:max-h-[85dvh] lg:h-[85vh] lg:h-[85dvh] lg:max-h-[750px] relative"
           >
             {/* Left Portion: GRAND IMAGE VIEWER */}
             <div className="w-full lg:w-3/5 h-[38vh] h-[38dvh] lg:h-full bg-[#252321] flex flex-col justify-between relative p-4 sm:p-6 lg:p-8 overflow-hidden flex-shrink-0">
@@ -176,17 +204,26 @@ export default function ArtworkModal({ artwork, onClose, onNext, onPrev }: Artwo
               </div>
 
               {/* Centered High Resolution Element */}
-              <div className="flex-grow flex items-center justify-center my-2 sm:my-4 relative w-full min-h-0 overflow-hidden">
+              <div 
+                onClick={() => setIsZoomed(true)}
+                className="flex-grow flex flex-col items-center justify-center my-2 sm:my-4 relative w-full min-h-0 overflow-hidden cursor-zoom-in group/canvas"
+              >
                 {/* Visual shadow glow behind actual painting context */}
-                <div className="absolute inset-0 bg-stone-900/40 blur-2xl rounded-full scale-75" />
+                <div className="absolute inset-0 bg-stone-900/40 blur-2xl rounded-full scale-75 pointer-events-none" />
                 
-                <ArtworkImage artwork={artwork} isModal={true} className="z-10" />
+                <ArtworkImage artwork={artwork} isModal={true} onClick={() => setIsZoomed(true)} className="z-10" />
+
+                {/* Micro-interactive instructions overlay on hover */}
+                <div className="absolute bottom-2 left-1/2 -translate-x-1/2 bg-[#2D2D2A]/85 text-[#F5F2ED] text-[10px] tracking-widest uppercase py-1.5 px-3 rounded-full flex items-center gap-1.5 opacity-0 sm:group-hover/canvas:opacity-100 transition-opacity z-20 shadow-md border border-[#F5F2ED]/10 pointer-events-none font-sans whitespace-nowrap">
+                  <Search className="w-3.5 h-3.5 text-[#DE8C68]" />
+                  <span>Click image to inspect brushwork</span>
+                </div>
               </div>
 
             </div>
 
             {/* Right Portion: METADATA, STORY, AND INQUIRY FORM */}
-            <div className="w-full lg:w-2/5 flex flex-col flex-1 h-[47vh] h-[47dvh] lg:h-full overflow-y-auto border-t lg:border-t-0 lg:border-l border-[#2D2D2A]/15 min-h-0">
+            <div className="w-full lg:w-2/5 flex flex-col flex-1 h-[54vh] h-[54dvh] lg:h-full overflow-y-auto border-t lg:border-t-0 lg:border-l border-[#2D2D2A]/15 min-h-0">
               <div className="p-6 sm:p-8 flex flex-col flex-grow justify-between gap-6">
                 {/* Visual Details Card */}
                 <div>
@@ -347,6 +384,95 @@ export default function ArtworkModal({ artwork, onClose, onNext, onPrev }: Artwo
             </div>
           </motion.div>
         </div>
+
+        {/* Zoom Mode Overlay */}
+        <AnimatePresence>
+          {isZoomed && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.25 }}
+              className="fixed inset-0 z-[100] bg-stone-950/98 flex flex-col justify-between select-none"
+              onClick={() => setIsZoomed(false)}
+            >
+              {/* Top Bar with Title and Scale Controls */}
+              <div 
+                className="p-4 sm:p-6 flex items-center justify-between text-[#F5F2ED] z-20 bg-gradient-to-b from-stone-950/80 to-transparent"
+                onClick={(e) => e.stopPropagation()} // Prevent clicking bar from closing zoom
+              >
+                <div className="flex flex-col">
+                  <span className="text-[9px] uppercase font-mono tracking-[0.2em] text-[#DE8C68] font-semibold">Fine Detail Inspection</span>
+                  <span className="font-serif font-light text-sm sm:text-base tracking-tight mt-1">
+                    {artwork.title} • {artwork.year}
+                  </span>
+                </div>
+
+                {/* Scale controls + close buttons */}
+                <div className="flex items-center gap-3">
+                  <div className="flex items-center bg-stone-900/90 rounded border border-white/10 p-0.5">
+                    <button
+                      onClick={() => setZoomScale(Math.max(1.5, zoomScale - 0.4))}
+                      disabled={zoomScale <= 1.5}
+                      className="px-2.5 py-1 text-[11px] font-mono hover:bg-stone-800 disabled:opacity-30 rounded text-[#F5F2ED]/80 hover:text-white transition-all cursor-pointer"
+                      title="Zoom Out"
+                    >
+                      -
+                    </button>
+                    <span className="px-3 text-[11.5px] font-mono font-medium min-w-[50px] text-center text-[#F5F2ED]/90 select-none">
+                      {zoomScale.toFixed(1)}x
+                    </span>
+                    <button
+                      onClick={() => setZoomScale(Math.min(4.0, zoomScale + 0.4))}
+                      disabled={zoomScale >= 4.0}
+                      className="px-2.5 py-1 text-[11px] font-mono hover:bg-stone-800 disabled:opacity-30 rounded text-[#F5F2ED]/80 hover:text-white transition-all cursor-pointer"
+                      title="Zoom In"
+                    >
+                      +
+                    </button>
+                  </div>
+
+                  <button
+                    onClick={() => setIsZoomed(false)}
+                    className="text-white/70 hover:text-white bg-stone-900/90 p-2 rounded border border-white/10 hover:bg-stone-800 transition-all shadow-md cursor-pointer"
+                    aria-label="Close Zoom"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
+              </div>
+
+              {/* Interactive Magnifier Stage */}
+              <div
+                className="flex-grow w-full relative cursor-zoom-out flex items-center justify-center p-3 sm:p-6 md:p-8"
+                onMouseMove={handleMouseMove}
+                onTouchMove={handleTouchMove}
+              >
+                <div className="relative w-full h-full flex items-center justify-center pointer-events-none">
+                  <div className="relative w-[95vw] h-[74vh] sm:h-[78vh] md:h-[82vh] max-w-[1350px] shadow-[0_45px_100px_rgba(0,0,0,0.95)] border-[5px] sm:border-[8px] border-stone-900 rounded-lg sm:rounded-xl overflow-hidden bg-stone-950/40 flex items-center justify-center">
+                    <motion.img
+                      src={artwork.imageUrl}
+                      alt={`${artwork.title} brushwork magnification`}
+                      className="w-full h-full max-w-full max-h-full object-contain transition-transform duration-100 ease-out"
+                      style={{
+                        transformOrigin: `${zoomOrigin.x}% ${zoomOrigin.y}%`,
+                        transform: `scale(${zoomScale})`,
+                      }}
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Bottom Status / Guidance Bar */}
+              <div className="p-4 sm:p-6 text-center text-[10px] tracking-widest uppercase font-mono text-[#F5F2ED]/40 z-20 bg-gradient-to-t from-stone-950/80 to-transparent">
+                <span className="bg-stone-900/60 px-4 py-2 rounded-full border border-white/5 inline-flex items-center gap-2">
+                  <Eye className="w-3.5 h-3.5 text-[#DE8C68] animate-pulse" />
+                  <span>Move cursor or touch drag to pan textures • Click to exit</span>
+                </span>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
   );
 

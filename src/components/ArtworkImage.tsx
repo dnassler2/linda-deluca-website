@@ -6,9 +6,10 @@ interface ArtworkImageProps {
   artwork: Artwork;
   className?: string;
   isModal?: boolean;
+  onClick?: () => void;
 }
 
-export default function ArtworkImage({ artwork, className = '', isModal = false }: ArtworkImageProps) {
+export default function ArtworkImage({ artwork, className = '', isModal = false, onClick }: ArtworkImageProps) {
   const [hasError, setHasError] = useState(false);
 
   // Derive a quick slug pattern matching in case of name adjustments
@@ -198,14 +199,18 @@ export default function ArtworkImage({ artwork, className = '', isModal = false 
           loading="lazy"
           referrerPolicy="no-referrer"
           onError={() => setHasError(true)}
+          onClick={onClick}
           className={
             isModal 
-              ? "max-w-full max-h-full object-contain pointer-events-none rounded border-[3px] border-[#2D2D2A] shadow-[0_12px_35px_rgba(0,0,0,0.5)] z-10 transition-transform duration-300"
+              ? `max-w-full max-h-full object-contain ${onClick ? 'cursor-zoom-in pointer-events-auto hover:brightness-[1.03]' : 'pointer-events-none'} rounded border-[3px] border-[#2D2D2A] shadow-[0_12px_35px_rgba(0,0,0,0.5)] z-10 transition-all duration-300`
               : "max-w-full max-h-full object-contain shadow-md rounded-[2px] border border-[#2D2D2A]/10 group-hover:scale-[1.03] transition-transform duration-500"
           }
         />
       ) : (
-        <div className="absolute inset-0 flex flex-col justify-between w-full h-full bg-[#E6E3DC] p-3 text-[#2D2D2A] rounded-lg">
+        <div 
+          onClick={onClick}
+          className={`absolute inset-0 flex flex-col justify-between w-full h-full bg-[#E6E3DC] p-3 text-[#2D2D2A] rounded-lg ${onClick ? 'cursor-zoom-in' : ''}`}
+        >
           {/* Inner aesthetic frame */}
           <div className="relative flex-grow rounded-md border border-[#2D2D2A]/15 overflow-hidden flex items-center justify-center bg-[#ECE9E2]">
             {renderFallbackIllustration()}
