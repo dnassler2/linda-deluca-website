@@ -34,15 +34,21 @@ export default function ArtworkModal({ artwork, onClose, onNext, onPrev }: Artwo
     }
   }, [artwork]);
 
-  // Handle escape key to close modal
+  // Handle escape key to close modal and lock background body scroll
   useEffect(() => {
+    const originalStyle = window.getComputedStyle(document.body).overflow;
+    document.body.style.overflow = 'hidden';
+
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') onClose();
       if (e.key === 'ArrowRight' && onNext) onNext();
       if (e.key === 'ArrowLeft' && onPrev) onPrev();
     };
     window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+      document.body.style.overflow = originalStyle;
+    };
   }, [onClose, onNext, onPrev]);
 
   if (!artwork) return null;
@@ -87,19 +93,18 @@ export default function ArtworkModal({ artwork, onClose, onNext, onPrev }: Artwo
   };
 
   return (
-    <AnimatePresence>
-      <div className="fixed inset-0 z-50 overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
-        {/* Backdrop overlay */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          transition={{ duration: 0.3 }}
-          className="fixed inset-0 bg-[#2D2D2A]/90 backdrop-blur-[4px] transition-opacity"
-          onClick={onClose}
-        />
+    <div className="fixed inset-0 z-50 overflow-hidden" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+      {/* Backdrop overlay */}
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        transition={{ duration: 0.3 }}
+        className="fixed inset-0 bg-[#2D2D2A]/90 backdrop-blur-[4px]"
+        onClick={onClose}
+      />
 
-        <div className="flex items-center justify-center min-h-screen p-4 sm:p-6 lg:p-10 relative z-10 font-sans">
+        <div className="flex items-center justify-center h-full w-full p-3 sm:p-6 lg:p-10 relative z-10 font-sans">
           {/* Modal Close Button (Floating Top Corner) */}
           <button
             id="modal-close-btn-top"
@@ -139,10 +144,10 @@ export default function ArtworkModal({ artwork, onClose, onNext, onPrev }: Artwo
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 15 }}
             transition={{ type: 'spring', damping: 25, stiffness: 220 }}
-            className="bg-[#F5F2ED] rounded-2xl overflow-hidden shadow-2xl border border-[#2D2D2A]/10 w-full max-w-5xl mx-auto flex flex-col lg:flex-row h-[90vh] lg:h-[85vh] max-h-[800px] lg:max-h-[750px]"
+            className="bg-[#F5F2ED] rounded-2xl overflow-hidden shadow-2xl border border-[#2D2D2A]/10 w-full max-w-5xl mx-auto flex flex-col lg:flex-row h-full max-h-[85vh] max-h-[85dvh] lg:h-[85vh] lg:h-[85dvh] lg:max-h-[750px]"
           >
             {/* Left Portion: GRAND IMAGE VIEWER */}
-            <div className="w-full lg:w-3/5 h-[40vh] lg:h-full bg-[#252321] flex flex-col justify-between relative p-4 sm:p-6 lg:p-8 overflow-hidden flex-shrink-0">
+            <div className="w-full lg:w-3/5 h-[38vh] h-[38dvh] lg:h-full bg-[#252321] flex flex-col justify-between relative p-4 sm:p-6 lg:p-8 overflow-hidden flex-shrink-0">
               {/* Top ambient shadows */}
               <div className="absolute inset-x-0 top-0 h-20 bg-gradient-to-b from-stone-950/40 to-transparent pointer-events-none" />
 
@@ -181,7 +186,7 @@ export default function ArtworkModal({ artwork, onClose, onNext, onPrev }: Artwo
             </div>
 
             {/* Right Portion: METADATA, STORY, AND INQUIRY FORM */}
-            <div className="w-full lg:w-2/5 flex flex-col h-[50vh] lg:h-full overflow-y-auto border-t lg:border-t-0 lg:border-l border-[#2D2D2A]/15 min-h-0 flex-1">
+            <div className="w-full lg:w-2/5 flex flex-col flex-1 h-[47vh] h-[47dvh] lg:h-full overflow-y-auto border-t lg:border-t-0 lg:border-l border-[#2D2D2A]/15 min-h-0">
               <div className="p-6 sm:p-8 flex flex-col flex-grow justify-between gap-6">
                 {/* Visual Details Card */}
                 <div>
@@ -343,7 +348,6 @@ export default function ArtworkModal({ artwork, onClose, onNext, onPrev }: Artwo
           </motion.div>
         </div>
       </div>
-    </AnimatePresence>
   );
 
 }

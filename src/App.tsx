@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { AnimatePresence } from 'motion/react';
 import Navbar from './components/Navbar';
 import GalleryGrid from './components/GalleryGrid';
 import AboutSection from './components/AboutSection';
@@ -76,12 +77,16 @@ export default function App() {
       </main>
 
       {/* Detailed Lightbox Artwork Inspect Modal */}
-      <ArtworkModal
-        artwork={selectedArtwork}
-        onClose={() => setSelectedArtwork(null)}
-        onNext={handleNextArtwork}
-        onPrev={handlePrevArtwork}
-      />
+      <AnimatePresence>
+        {selectedArtwork && (
+          <ArtworkModal
+            artwork={selectedArtwork}
+            onClose={() => setSelectedArtwork(null)}
+            onNext={handleNextArtwork}
+            onPrev={handlePrevArtwork}
+          />
+        )}
+      </AnimatePresence>
 
       {/* Pristine Museum Footer */}
       <footer className="bg-[#EAE7E2] border-t border-[#2D2D2A]/10 mt-20 py-12 text-[#2D2D2A]/70 text-xs font-sans">
